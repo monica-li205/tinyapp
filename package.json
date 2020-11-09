@@ -16,5 +16,8 @@
   "bugs": {
     "url": "https://github.com/monica-li205/tinyapp/issues"
   },
-  "homepage": "https://github.com/monica-li205/tinyapp#readme"
+  "homepage": "https://github.com/monica-li205/tinyapp#readme",
+  "dependencies": {
+    "express": "^4.17.1"
+  }
 }
