@@ -32,7 +32,6 @@ app.get("/urls", (req, res) => {
 
 app.get("/urls/:shortURL", (req, res) => {
   const templateVars = { shortURL: "b2xVn2", longURL: "http://www.lighthouselabs.ca"  };
-  // req.params = { "shortURL": "b2xVn2", "longURL": "http://www.lighthouselabs.ca" };
   res.render('urls_show', templateVars);
 });
 
