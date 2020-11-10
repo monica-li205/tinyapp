@@ -33,13 +33,13 @@ app.post("/urls", (req, res) => {
     res.render('urls_show', templateVars);
   })
 
+  app.get(`/u/:shortURL`, (req, res) => {
+    const longURL = urlDatabase[shortURL];
+    console.log(longURL);
+    res.redirect(`https://${longURL}`);
+  });
   // res.redirect(`${urlDatabase[shortURL]}`);
 });
-// app.get(`/urls/:shortURL`, (req, res) => {
-//   const longURL = urlDatabase[shortURL];
-//   console.log(longURL);
-//   redirect(longURL);
-// });
 
 
 // app.get("/urls/:shortURL", (req, res) => {
