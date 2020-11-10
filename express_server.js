@@ -9,52 +9,42 @@ const urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
   "9sm5xK": "http://www.google.com"
 };
-app.get("/urls/new", (req, res) => {
+app.get("/new", (req, res) => {
   res.render("urls_new");
-})
+});
 
 app.get("/urls", (req, res) => {
   const templateVars = {urls: urlDatabase };
   res.render('urls_index', templateVars);
-})
+});
 
 app.post("/urls", (req, res) => {
-  // console.log(req.body);  // Log the POST request body to the console
   let shortURL = generateRandomString();
   urlDatabase[shortURL] = req.body.longURL;
   console.log(urlDatabase);
   res.redirect(`/urls/${shortURL}`);
-
-
-  app.get(`/urls/:shortURL`, (req, res) => {
-    const templateVars = {shortURL: shortURL, longURL : urlDatabase[shortURL]};
-    console.log(templateVars);
-    // const longURL = templateVars.longURL;
-    res.render('urls_show', templateVars);
-  })
-
-  app.get(`/u/:shortURL`, (req, res) => {
-    const longURL = urlDatabase[shortURL];
-    console.log(longURL);
-    res.redirect(`https://${longURL}`);
-  });
-  // res.redirect(`${urlDatabase[shortURL]}`);
 });
 
+app.get(`/urls/:shortURL`, (req, res) => {
+  const shortURL = req.params.shortURL;
+  const templateVars = {shortURL: shortURL, longURL : urlDatabase[shortURL]};
+  console.log(templateVars);
+  res.render('urls_show', templateVars);
+});
 
-// app.get("/urls/:shortURL", (req, res) => {
-//   const templateVars = { shortURL: , longURL:   };
-//   const longURL = templateVars.longURL
-//   res.render('urls_show', templateVars);
-// });
+app.get(`/u/:shortURL`, (req, res) => {
+  const shortURL = req.params.shortURL;
+  const longURL = urlDatabase[shortURL];
+  console.log(longURL);
+  res.redirect(`https://${longURL}`);
+});
 
-;
-
-// app.get("/urls/:shortURL", (req, res) => {
-//   const templateVars = { shortURL: "b2xVn2", longURL: "http://www.lighthouselabs.ca"  };
-//   const longURL = templateVars.longURL
-//   res.render('urls_show', templateVars);
-// });
+app.post("/urls/:shortURL/delete", (req, res) => {
+  const shortURL = req.params.shortURL;
+  delete urlDatabase[shortURL];
+  console.log(urlDatabase[shortURL]);
+  res.redirect('/urls');
+});
 
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
@@ -67,4 +57,4 @@ const generateRandomString = function() {
     id += letters.charAt(Math.floor(Math.random() * 52));
   }
   return id;
-}
+};
