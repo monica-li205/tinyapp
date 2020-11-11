@@ -42,24 +42,21 @@ app.post('/login', (req, res) => {
   res.redirect('/urls')
 })
 
-app.get('/urls', (req, res) => {
-  const templateVars = {
-    username: req.cookies['username'], 
-    urls: urlDatabase 
-  };
-  
-  // res.cookie(username, 'true);
-  // // res.redirect('/urls/login')
-  // if (req.cookies.loggedin == true) {
-  //   response = "you are logged in 8)";
-  // } res.send(response);
-  res.render('urls_index', templateVars);
+app.post('/logout', (req, res) => {
+  // const username = req.cookies['username'];
+  //console.log(username);
+  res.clearCookie('username')
+  res.redirect('/urls')
 })
 
 app.get('/urls/:shortURL', (req, res) => {
   const shortURL = req.params.shortURL;
   const longURL = urlDatabase[shortURL];
-  const templateVars = {shortURL: shortURL, longURL : longURL, username: req.cookies['username'],};
+  const templateVars = {
+    shortURL: shortURL, 
+    longURL : longURL, 
+    username: req.cookies['username'],
+  };
   // console.log(templateVars);
   res.render('urls_show', templateVars);
 });
