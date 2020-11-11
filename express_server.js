@@ -136,7 +136,6 @@ const generateRandomString = function() {
 
 const emailLookupHelper = function(email) {
   for (let user in users) {
-    console.log({user, users, email});
     if (users[user].email === email) {
       return false;
     }
