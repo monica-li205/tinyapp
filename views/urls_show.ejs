@@ -18,10 +18,11 @@
       <div>
         <h4 class="card-title">Edit</h4>
         <p>
-          <forms>
+          <form class="form-inline" action="/urls/<%= shortURL %>" method="POST">
             <label>New URL:</label>
-            <input type = "text" id = "editTextBox" />
-          </forms>
+            <input type="text" name="longURL" />
+            <button type="submit" class="btn btn-primary">Submit</button>
+          </form>
         </p>
       </div>
     <div class="card-footer text-muted"></div>

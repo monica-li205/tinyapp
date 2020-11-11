@@ -25,18 +25,19 @@ app.post("/urls", (req, res) => {
   res.redirect(`/urls/${shortURL}`);
 });
 
-app.get(`/urls/:shortURL`, (req, res) => {
+app.get('/urls/:shortURL', (req, res) => {
   const shortURL = req.params.shortURL;
-  const templateVars = {shortURL: shortURL, longURL : urlDatabase[shortURL]};
-  console.log(templateVars);
+  const longURL = urlDatabase[shortURL];
+  const templateVars = {shortURL: shortURL, longURL : longURL};
+  // console.log(templateVars);
   res.render('urls_show', templateVars);
 });
 
-app.get(`/u/:shortURL`, (req, res) => {
+app.get('/u/:shortURL', (req, res) => {
   const shortURL = req.params.shortURL;
   const longURL = urlDatabase[shortURL];
   console.log(longURL);
-  res.redirect(`https://${longURL}`);
+  res.redirect(longURL);
 });
 
 app.post("/urls/:shortURL/delete", (req, res) => {
@@ -46,15 +47,23 @@ app.post("/urls/:shortURL/delete", (req, res) => {
   res.redirect('/urls');
 });
 
+app.post('/urls/:shortURL', (req, res) => {
+  const newLongURL = req.body.longURL;
+  const shortURL = req.params.shortURL;
+  urlDatabase[shortURL] = newLongURL;
+  res.redirect('/urls');
+})
+
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
 });
 
 const generateRandomString = function() {
   let id = '';
-  const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
+  const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
   while (id.length < 6) {
-    id += letters.charAt(Math.floor(Math.random() * 52));
+    id += letters.charAt(Math.floor(Math.random() * 62));
   }
   return id;
 };
+
