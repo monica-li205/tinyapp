@@ -1,13 +1,20 @@
 // const { response } = require("express");
+// const CookieParser = require('cookie-parser');
+// app.use(CookieParser());
+const {generateRandomString, emailLookupHelper, urlsForUser} = require('./helpers');
 const express = require("express");
 const app = express();
-const CookieParser = require('cookie-parser');
+const cookieSession = require('cookie-session');
 const PORT = 8080; // default port 8080
 app.set("view engine", "ejs");
 const bodyParser = require("body-parser");
 const bcrypt = require('bcrypt');
 app.use(bodyParser.urlencoded({extended: true}));
-app.use(CookieParser());
+app.set('trust proxy', 1)
+app.use(cookieSession({
+  name: 'session',
+  keys: ['key1', 'key2']
+}));
 
 let currentUser = {};
 
@@ -20,12 +27,12 @@ const users = {
   "userRandomuser_id": {
     user_id: "userRandomuser_id",
     email: "user@example.com",
-    password: "purple"
+    password: bcrypt.hashSync("purple", 10),
   },
   "user2" : {
-    user_id: 'user2000',
+    user_id: 'user2',
     email: 'user2@mail.com',
-    password: '1234',
+    password: bcrypt.hashSync('1234',10),
   }
 };
 
@@ -33,18 +40,18 @@ app.get("/new", (req, res) => {
   const templateVars = {
     users: users,
     currentUser: currentUser,
-    user_id: req.cookies['user_id'],
+    user_id: req.session.user_id,
   };
   res.render("urls_new", templateVars);
 });
 
 app.get("/urls", (req, res) => {
-  let urls = urlsForUser(currentUser.user_id);
+  let urls = urlsForUser(currentUser.user_id, urlDatabase);
   const templateVars = {
     users:users,
     currentUser: currentUser,
     urls: urls,
-    user_id: req.cookies['user_id'],
+    user_id: req.session.user_id,
   };
   res.render('urls_index', templateVars);
 });
@@ -53,7 +60,7 @@ app.get('/register', (req, res) => {
   const templateVars = {
     users: users,
     currentUser: currentUser,
-    user_id: req.cookies['user_id'],
+    user_id: req.session.user_id,
   };
   res.render('urls_register', templateVars);
 });
@@ -62,7 +69,7 @@ app.get('/login', (req, res) => {
   const templateVars = {
     users: users,
     currentUser: currentUser,
-    user_id: req.cookies['user_id'],
+    user_id: req.session.user_id,
   };
   res.render('urls_login', templateVars);
 });
@@ -74,7 +81,7 @@ app.get('/urls/:shortURL', (req, res) => {
     key: shortURL,
     users: users,
     currentUser: currentUser,
-    user_id: req.cookies['user_id'],
+    user_id: req.session.user_id,
   };
   res.render('urls_show', templateVars);
 });
@@ -93,12 +100,15 @@ app.post('/register', (req, res) => {
   users[id]['password'] = bcrypt.hashSync(req.body.password_register, 10);
   console.log(users);
 
-  if (req.body.email === '' || !req.body.password === '' || emailLookupHelper(req.body.email)) {
+  if (req.body.email === '' || !req.body.password === '' || emailLookupHelper(req.body.email, users)) {
     console.log('8((');
     return res.sendStatus(400);
 
   } else {
-    res.cookie('user_id', id);
+    currentUser.user_id = users[id].user_id;
+    currentUser.email = users[id].email;
+    currentUser.password = users[id].password;
+    req.session.user_id = id;
     res.redirect('/urls');
   }
 });
@@ -116,40 +126,37 @@ app.post('/login', (req, res) => {
   let email = req.body.email_login;
   let password = req.body.password_login;
 
-  if (emailLookupHelper(email)) {
-    console.log('>8" (((((')
-    return res.sendStatus(403);
+  if (!emailLookupHelper(email, users)) {
+    console.log('80');
+    res.sendStatus(403);
   } else if(email === '' || password === '') {
-    console.log('>80')
+    console.log('8((')
     res.sendStatus(400)
-  } else {
-    for (let user in users) {
-      if (users[user].email === email) {
-        console.log('8))')
-        currentUser.user_id = users[user].user_id;
-        currentUser.email = users[user].email;
-        currentUser.password = users[user].password;
-        if (bcrypt.compareSync(password, currentUser.password)) {
-          console.log(currentUser);
-          res.cookie('user_id', currentUser.user_id);
-          res.redirect('/urls');
-        } else {
-          res.sendStatus(403);
-        }
-      } 
-    }
-  }
+  } else if (emailLookupHelper(email, users)) {
+    let user = emailLookupHelper(email, users);
+    currentUser.user_id = users[user].user_id;
+    currentUser.email = users[user].email;
+    currentUser.password = users[user].password;
+
+      if (bcrypt.compareSync(password, currentUser.password)) {
+        console.log(currentUser);
+        req.session.user_id = currentUser.user_id;
+        res.redirect('/urls');
+      } else {
+        res.sendStatus(403);
+      }
+  } 
 });
 
 app.post('/logout', (req, res) => {
   currentUser = {};
-  res.clearCookie('user_id');
+  req.session = null;
   res.redirect('/urls');
 });
 
 app.post("/urls/:shortURL/delete", (req, res) => {
   const shortURL = req.params.shortURL;
-  let usersURLsArray = Object.keys(urlsForUser(currentUser.user_id));
+  let usersURLsArray = Object.keys(urlsForUser(currentUser.user_id, urlDatabase));
   if(usersURLsArray.includes(shortURL)){
     console.log(urlDatabase[shortURL]);
     delete urlDatabase[shortURL];
@@ -162,7 +169,7 @@ app.post("/urls/:shortURL/delete", (req, res) => {
 app.post('/urls/:shortURL', (req, res) => {
   const newLongURL = req.body.longURL;
   const shortURL = req.params.shortURL;
-  let usersURLsArray = Object.keys(urlsForUser(currentUser.user_id));
+  let usersURLsArray = Object.keys(urlsForUser(currentUser.user_id, urlDatabase));
   if(usersURLsArray.includes(shortURL)){
     urlDatabase[shortURL] = newLongURL;
     res.redirect('/urls');
@@ -175,33 +182,3 @@ app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
 });
 
-const generateRandomString = function() {
-  let user_id = '';
-  const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-  while (user_id.length < 6) {
-    user_id += letters.charAt(Math.floor(Math.random() * 62));
-  }
-  return user_id;
-};
-
-const emailLookupHelper = function(email) {
-  for (let user in users) {
-    if (users[user].email === email) {
-      return true;
-    } else {
-      return false;
-    }
-  }
-};
-
-const urlsForUser = function(id) {
-  let currentUserURLS = {};
-  for (let url in urlDatabase) {
-    if (urlDatabase[url].userID === id) {
-      currentUserURLS[url] = {};
-      currentUserURLS[url].longURL = urlDatabase[url].longURL;
-      currentUserURLS[url].userID = id;
-    }
-  }
-  return currentUserURLS;
-};
