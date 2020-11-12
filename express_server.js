@@ -1,16 +1,13 @@
-// const { response } = require("express");
-// const CookieParser = require('cookie-parser');
-// app.use(CookieParser());
 const {generateRandomString, getUserByEmail, urlsForUser} = require('./helpers');
 const express = require("express");
 const app = express();
 const cookieSession = require('cookie-session');
-const PORT = 8080; // default port 8080
-app.set("view engine", "ejs");
+const PORT = 8080;
 const bodyParser = require("body-parser");
 const bcrypt = require('bcrypt');
+app.set("view engine", "ejs");
+app.set('trust proxy', 1);
 app.use(bodyParser.urlencoded({extended: true}));
-app.set('trust proxy', 1)
 app.use(cookieSession({
   name: 'session',
   keys: ['key1', 'key2']
@@ -129,23 +126,23 @@ app.post('/login', (req, res) => {
   if (!getUserByEmail(email, users)) {
     console.log('80');
     res.sendStatus(403);
-  } else if(email === '' || password === '') {
-    console.log('8((')
-    res.sendStatus(400)
+  } else if (email === '' || password === '') {
+    console.log('8((');
+    res.sendStatus(400);
   } else if (getUserByEmail(email, users)) {
     let user = getUserByEmail(email, users);
     currentUser.user_id = users[user].user_id;
     currentUser.email = users[user].email;
     currentUser.password = users[user].password;
 
-      if (bcrypt.compareSync(password, currentUser.password)) {
-        console.log(currentUser);
-        req.session.user_id = currentUser.user_id;
-        res.redirect('/urls');
-      } else {
-        res.sendStatus(403);
-      }
-  } 
+    if (bcrypt.compareSync(password, currentUser.password)) {
+      console.log(currentUser);
+      req.session.user_id = currentUser.user_id;
+      res.redirect('/urls');
+    } else {
+      res.sendStatus(403);
+    }
+  }
 });
 
 app.post('/logout', (req, res) => {
@@ -157,7 +154,7 @@ app.post('/logout', (req, res) => {
 app.post("/urls/:shortURL/delete", (req, res) => {
   const shortURL = req.params.shortURL;
   let usersURLsArray = Object.keys(urlsForUser(currentUser.user_id, urlDatabase));
-  if(usersURLsArray.includes(shortURL)){
+  if (usersURLsArray.includes(shortURL)) {
     console.log(urlDatabase[shortURL]);
     delete urlDatabase[shortURL];
     res.redirect('/urls');
@@ -170,7 +167,7 @@ app.post('/urls/:shortURL', (req, res) => {
   const newLongURL = req.body.longURL;
   const shortURL = req.params.shortURL;
   let usersURLsArray = Object.keys(urlsForUser(currentUser.user_id, urlDatabase));
-  if(usersURLsArray.includes(shortURL)){
+  if (usersURLsArray.includes(shortURL)) {
     urlDatabase[shortURL] = newLongURL;
     res.redirect('/urls');
   } else {

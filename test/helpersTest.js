@@ -3,13 +3,13 @@ const { assert } = require('chai');
 
 const testUsers = {
   "userRandomID": {
-    user_id: "userRandomID", 
-    email: "user@example.com", 
+    user_id: "userRandomID",
+    email: "user@example.com",
     password: "purple-monkey-dinosaur"
   },
   "user2RandomID": {
-    user_id: "user2RandomID", 
-    email: "user2@example.com", 
+    user_id: "user2RandomID",
+    email: "user2@example.com",
     password: "dishwasher-funk"
   }
 };
