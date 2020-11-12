@@ -148,16 +148,26 @@ app.post('/logout', (req, res) => {
 
 app.post("/urls/:shortURL/delete", (req, res) => {
   const shortURL = req.params.shortURL;
-  delete urlDatabase[shortURL];
-  console.log(urlDatabase[shortURL]);
-  res.redirect('/urls');
+  let usersURLsArray = Object.keys(urlsForUser(currentUser.user_id));
+  if(usersURLsArray.includes(shortURL)){
+    console.log(urlDatabase[shortURL]);
+    delete urlDatabase[shortURL];
+    res.redirect('/urls');
+  } else {
+    return res.sendStatus(403);
+  }
 });
 
 app.post('/urls/:shortURL', (req, res) => {
   const newLongURL = req.body.longURL;
   const shortURL = req.params.shortURL;
-  urlDatabase[shortURL] = newLongURL;
-  res.redirect('/urls');
+  let usersURLsArray = Object.keys(urlsForUser(currentUser.user_id));
+  if(usersURLsArray.includes(shortURL)){
+    urlDatabase[shortURL] = newLongURL;
+    res.redirect('/urls');
+  } else {
+    return res.sendStatus(403);
+  }
 });
 
 app.listen(PORT, () => {
