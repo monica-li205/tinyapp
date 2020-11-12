@@ -32,6 +32,13 @@ const users = {
     password: bcrypt.hashSync('1234',10),
   }
 };
+app.get("/", (req, res) => {
+  if (currentUser.user_id) {
+    res.redirect("/urls");
+  } else if (!currentUser.id) {
+    res.redirect("/login");
+  }
+});
 
 app.get("/new", (req, res) => {
   const templateVars = {
