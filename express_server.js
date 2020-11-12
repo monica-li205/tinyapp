@@ -1,7 +1,7 @@
 // const { response } = require("express");
 // const CookieParser = require('cookie-parser');
 // app.use(CookieParser());
-const {generateRandomString, emailLookupHelper, urlsForUser} = require('./helpers');
+const {generateRandomString, getUserByEmail, urlsForUser} = require('./helpers');
 const express = require("express");
 const app = express();
 const cookieSession = require('cookie-session');
@@ -100,7 +100,7 @@ app.post('/register', (req, res) => {
   users[id]['password'] = bcrypt.hashSync(req.body.password_register, 10);
   console.log(users);
 
-  if (req.body.email === '' || !req.body.password === '' || emailLookupHelper(req.body.email, users)) {
+  if (req.body.email === '' || !req.body.password === '' || getUserByEmail(req.body.email, users)) {
     console.log('8((');
     return res.sendStatus(400);
 
@@ -126,14 +126,14 @@ app.post('/login', (req, res) => {
   let email = req.body.email_login;
   let password = req.body.password_login;
 
-  if (!emailLookupHelper(email, users)) {
+  if (!getUserByEmail(email, users)) {
     console.log('80');
     res.sendStatus(403);
   } else if(email === '' || password === '') {
     console.log('8((')
     res.sendStatus(400)
-  } else if (emailLookupHelper(email, users)) {
-    let user = emailLookupHelper(email, users);
+  } else if (getUserByEmail(email, users)) {
+    let user = getUserByEmail(email, users);
     currentUser.user_id = users[user].user_id;
     currentUser.email = users[user].email;
     currentUser.password = users[user].password;

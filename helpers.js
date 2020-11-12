@@ -7,12 +7,15 @@ const generateRandomString = function() {
   return user_id;
 };
 
-const emailLookupHelper = function(email, users) {
+const getUserByEmail = function(email, users) {
   let username = '';
   for (let user in users) {
     if (users[user].email === email) {
       username = users[user].user_id;
     }
+  }
+  if (username === '') {
+    username = undefined;
   }
   return username;
 };
@@ -29,4 +32,4 @@ const urlsForUser = function(id, urlDatabase) {
   return currentUserURLS;
 };
 
-module.exports = {generateRandomString, emailLookupHelper, urlsForUser};
+module.exports = {generateRandomString, getUserByEmail, urlsForUser};
