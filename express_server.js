@@ -8,10 +8,17 @@ const { response } = require("express");
 app.use(bodyParser.urlencoded({extended: true}));
 app.use(CookieParser());
 
+// const urlDatabase = {
+//   "b2xVn2": "http://www.lighthouselabs.ca",
+//   "9sm5xK": "http://www.google.com"
+// };
+let currentUser = {};
+
 const urlDatabase = {
-  "b2xVn2": "http://www.lighthouselabs.ca",
-  "9sm5xK": "http://www.google.com"
+  b6UTxQ: { longURL: "https://www.tsn.ca", userID: "aJ48lW" },
+  i3BoGr: { longURL: "https://www.google.ca", userID: "aJ48lW" }
 };
+
 const users = {
   "userRandomuser_id": {
     user_id: "userRandomuser_id", 
@@ -29,9 +36,10 @@ app.get("/new", (req, res) => {
 });
 
 app.get("/urls", (req, res) => {
+  let urls = urlsForUser(currentUser.user_id);
   const templateVars = {
     users:users,
-    urls: urlDatabase,
+    urls: urls,
     user_id: req.cookies['user_id'],
   };
   res.render('urls_index', templateVars);
@@ -55,18 +63,18 @@ app.get('/login', (req, res) => {
 
 app.get('/urls/:shortURL', (req, res) => {
   const shortURL = req.params.shortURL;
-  const longURL = urlDatabase[shortURL];
   const templateVars = {
-    shortURL: shortURL, 
-    longURL : longURL, 
-    user: user,
+    urls: urlDatabase,
+    key: shortURL,
+    users: users,
+    user_id: req.cookies['user_id'],
   };
   res.render('urls_show', templateVars);
 });
 
 app.get('/u/:shortURL', (req, res) => {
   const shortURL = req.params.shortURL;
-  const longURL = urlDatabase[shortURL];
+  const longURL = urlDatabase[shortURL].longURL;
   console.log(longURL);
   res.redirect(longURL);
 });
@@ -91,7 +99,9 @@ app.post('/register', (req, res) => {
 
 app.post("/urls", (req, res) => {
   let shortURL = generateRandomString();
-  urlDatabase[shortURL] = req.body.longURL;
+  urlDatabase[shortURL] = {};
+  urlDatabase[shortURL].longURL = req.body.longURL;
+  urlDatabase[shortURL].userID = currentUser.user_id;
   console.log(urlDatabase);
   res.redirect(`/urls/${shortURL}`);
 });
@@ -99,7 +109,6 @@ app.post("/urls", (req, res) => {
 app.post('/login', (req, res) => {
   let email = req.body.email;
   let password = req.body.password;
-  let currentUser = {};
   if (!emailLookupHelper(email)) {
     return res.sendStatus(403);
   } else {
@@ -120,6 +129,7 @@ app.post('/login', (req, res) => {
 })
 
 app.post('/logout', (req, res) => {
+  currentUser = {};
   res.clearCookie('user_id');
   res.redirect('/urls');
 })
@@ -160,3 +170,15 @@ const emailLookupHelper = function(email) {
     }
   }
 };
+
+const urlsForUser = function(id) {
+  let currentUserURLS = {};
+  for (let url in urlDatabase) {
+    if(urlDatabase[url].userID === id) {
+      currentUserURLS[url] = {};
+      currentUserURLS[url].longURL = urlDatabase[url].longURL;
+      currentUserURLS[url].userID = id;
+    }
+  }
+  return currentUserURLS;
+}
