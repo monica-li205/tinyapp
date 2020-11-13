@@ -1,10 +1,10 @@
 const {generateRandomString, getUserByEmail, urlsForUser} = require('./helpers');
 const express = require("express");
-const app = express();
 const cookieSession = require('cookie-session');
-const PORT = 8080;
 const bodyParser = require("body-parser");
 const bcrypt = require('bcrypt');
+const app = express();
+const PORT = 8080;
 app.set("view engine", "ejs");
 app.set('trust proxy', 1);
 app.use(bodyParser.urlencoded({extended: true}));
@@ -13,6 +13,7 @@ app.use(cookieSession({
   keys: ['key1', 'key2']
 }));
 
+// temporary storage containing the current user's id, email and password. Is wiped after logout
 let currentUser = {};
 
 const urlDatabase = {
@@ -67,7 +68,11 @@ app.get('/register', (req, res) => {
     currentUser: currentUser,
     user_id: req.session.user_id,
   };
-  res.render('urls_register', templateVars);
+  if (currentUser.user_id) {
+    res.redirect('/urls');
+  } else {
+    res.render('urls_register', templateVars);
+  }
 });
 
 app.get('/login', (req, res) => {
@@ -76,7 +81,11 @@ app.get('/login', (req, res) => {
     currentUser: currentUser,
     user_id: req.session.user_id,
   };
-  res.render('urls_login', templateVars);
+  if (currentUser.user_id) {
+    res.redirect('/urls');
+  } else {
+    res.render('urls_login', templateVars);
+  }
 });
 
 app.get('/urls/:shortURL', (req, res) => {

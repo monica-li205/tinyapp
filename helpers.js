@@ -1,3 +1,4 @@
+//creates random ID when users register
 const generateRandomString = function() {
   let user_id = '';
   const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
@@ -7,6 +8,7 @@ const generateRandomString = function() {
   return user_id;
 };
 
+//checks and returns a username if their email is already in the database
 const getUserByEmail = function(email, users) {
   let username = '';
   for (let user in users) {
@@ -20,6 +22,7 @@ const getUserByEmail = function(email, users) {
   return username;
 };
 
+//creates a database of the current user's URLs
 const urlsForUser = function(id, urlDatabase) {
   let currentUserURLS = {};
   for (let url in urlDatabase) {
