@@ -16,8 +16,8 @@ app.use(cookieSession({
 let currentUser = {};
 
 const urlDatabase = {
-  b6UTxQ: { longURL: "https://www.tsn.ca", userID: "aJ48lW" },
-  i3BoGr: { longURL: "https://www.google.ca", userID: "aJ48lW" }
+  b6UTxQ: { longURL: "https://www.tsn.ca", userID: "userRandomuser_id" },
+  i3BoGr: { longURL: "https://www.google.ca", userID: "user2" },
 };
 
 const users = {
@@ -32,6 +32,7 @@ const users = {
     password: bcrypt.hashSync('1234',10),
   }
 };
+
 app.get("/", (req, res) => {
   if (currentUser.user_id) {
     res.redirect("/urls");
@@ -93,7 +94,14 @@ app.get('/urls/:shortURL', (req, res) => {
 app.get('/u/:shortURL', (req, res) => {
   const shortURL = req.params.shortURL;
   const longURL = urlDatabase[shortURL].longURL;
-  res.redirect(longURL);
+  const regexp =  /^(?:(?:https?|ftp):\/\/)?(?:(?!(?:10|127)(?:\.\d{1,3}){3})(?!(?:169\.254|192\.168)(?:\.\d{1,3}){2})(?!172\.(?:1[6-9]|2\d|3[0-1])(?:\.\d{1,3}){2})(?:[1-9]\d?|1\d\d|2[01]\d|22[0-3])(?:\.(?:1?\d{1,2}|2[0-4]\d|25[0-5])){2}(?:\.(?:[1-9]\d?|1\d\d|2[0-4]\d|25[0-4]))|(?:(?:[a-z\u00a1-\uffff0-9]-*)*[a-z\u00a1-\uffff0-9]+)(?:\.(?:[a-z\u00a1-\uffff0-9]-*)*[a-z\u00a1-\uffff0-9]+)*(?:\.(?:[a-z\u00a1-\uffff]{2,})))(?::\d{2,5})?(?:\/\S*)?$/;
+  if (!regexp.test(longURL)) {
+    return res.status(400).send('your URL is not valid');
+  } else if (longURL[0] !== 'h') {
+    res.redirect(`https://${longURL}`);
+  } else {
+    res.redirect(longURL);
+  }
 });
 
 app.post('/register', (req, res) => {
@@ -106,7 +114,7 @@ app.post('/register', (req, res) => {
 
   if (req.body.email === '' || !req.body.password === '' || getUserByEmail(req.body.email, users)) {
     console.log('8((');
-    return res.sendStatus(400);
+    return res.status(400).send('please enter a valid email and password');
 
   } else {
     currentUser.user_id = users[id].user_id;
@@ -132,10 +140,10 @@ app.post('/login', (req, res) => {
 
   if (!getUserByEmail(email, users)) {
     console.log('80');
-    res.sendStatus(403);
+    res.status(403).send('you do not have permission to perform this action!');
   } else if (email === '' || password === '') {
     console.log('8((');
-    res.sendStatus(400);
+    res.status(400).send('Please enter a valid email and password');
   } else if (getUserByEmail(email, users)) {
     let user = getUserByEmail(email, users);
     currentUser.user_id = users[user].user_id;
@@ -147,7 +155,7 @@ app.post('/login', (req, res) => {
       req.session.user_id = currentUser.user_id;
       res.redirect('/urls');
     } else {
-      res.sendStatus(403);
+      res.status(403).send('you do not have permission to perform this action!');
     }
   }
 });
@@ -166,7 +174,7 @@ app.post("/urls/:shortURL/delete", (req, res) => {
     delete urlDatabase[shortURL];
     res.redirect('/urls');
   } else {
-    return res.sendStatus(403);
+    return res.status(403).send('you do not have permission to perform this action!');
   }
 });
 
@@ -178,7 +186,7 @@ app.post('/urls/:shortURL', (req, res) => {
     urlDatabase[shortURL] = newLongURL;
     res.redirect('/urls');
   } else {
-    return res.sendStatus(403);
+    return res.status(403).send('you do not have permission to perform this action!');
   }
 });
 
