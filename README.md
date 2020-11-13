@@ -4,8 +4,11 @@ TinyApp is a full stack web application built with Node and Express that allows 
 
 ## Final Product
 
-!["screenshot description"](#)
-!["screenshot description"](#)
+!["Homepage (Not logged in)"](https://github.com/monica-li205/tinyapp/blob/master/docs/homepage.png?raw=true)
+
+!["User Homepage (when logged in)"](https://github.com/monica-li205/tinyapp/blob/master/docs/logged%20in.png?raw=true)
+
+!["Create a New Link!"](https://github.com/monica-li205/tinyapp/blob/master/docs/create%20new%20link.png?raw=true)
 
 ## Dependencies
 
