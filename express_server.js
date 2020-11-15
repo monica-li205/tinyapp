@@ -57,6 +57,7 @@ app.get('/register', (req, res) => {
     currentUser: currentUser,
     user_id: req.session.user_id,
   };
+  // if the user is already logged in, they will be redirected to the homepage
   if (currentUser.user_id) {
     res.redirect('/urls');
   } else {
@@ -69,6 +70,7 @@ app.get('/login', (req, res) => {
     currentUser: currentUser,
     user_id: req.session.user_id,
   };
+  // if the user is already logged in, they will be redirected to the homepage
   if (currentUser.user_id) {
     res.redirect('/urls');
   } else {
@@ -84,6 +86,7 @@ app.get('/urls/:shortURL', (req, res) => {
     currentUser: currentUser,
     user_id: req.session.user_id,
   };
+  //checks if the user trying to access the shortURL page is the same as the user who created the shortURL
   if (templateVars.user_id === urlDatabase[shortURL].userID) {
     res.render('urls_show', templateVars);
   } else {
@@ -95,6 +98,7 @@ app.get('/u/:shortURL', (req, res) => {
   const shortURL = req.params.shortURL;
   const longURL = urlDatabase[shortURL].longURL;
   const regexp =  /^(?:(?:https?|ftp):\/\/)?(?:(?!(?:10|127)(?:\.\d{1,3}){3})(?!(?:169\.254|192\.168)(?:\.\d{1,3}){2})(?!172\.(?:1[6-9]|2\d|3[0-1])(?:\.\d{1,3}){2})(?:[1-9]\d?|1\d\d|2[01]\d|22[0-3])(?:\.(?:1?\d{1,2}|2[0-4]\d|25[0-5])){2}(?:\.(?:[1-9]\d?|1\d\d|2[0-4]\d|25[0-4]))|(?:(?:[a-z\u00a1-\uffff0-9]-*)*[a-z\u00a1-\uffff0-9]+)(?:\.(?:[a-z\u00a1-\uffff0-9]-*)*[a-z\u00a1-\uffff0-9]+)*(?:\.(?:[a-z\u00a1-\uffff]{2,})))(?::\d{2,5})?(?:\/\S*)?$/;
+  //checks if a URL is a valid URL, then checks if the user added https:// to beginning of the URL. If the user did not, it will add the https:// to ensure the link will redirect when clicked on
   if (!regexp.test(longURL)) {
     return res.status(400).send('your URL is not valid');
   } else if (longURL[0] !== 'h') {
@@ -111,10 +115,9 @@ app.post('/register', (req, res) => {
   users[id]['email'] = req.body.email_register;
   users[id]['password'] = bcrypt.hashSync(req.body.password_register, 10);
   console.log("USERS:", users);
-
+// checks if the user left any fields blank or if their email is already in the database
   if (req.body.email === '' || !req.body.password === '' || getUserByEmail(req.body.email, users)) {
     return res.status(400).send('please enter a valid email and password');
-
   } else {
     currentUser.user_id = users[id].user_id;
     currentUser.email = users[id].email;
@@ -136,7 +139,7 @@ app.post("/urls", (req, res) => {
 app.post('/login', (req, res) => {
   let email = req.body.email_login;
   let password = req.body.password_login;
-
+// checks if email exists in database and if valid, stores their info in the currentUser object
   if (!getUserByEmail(email, users)) {
     res.status(403).send('you do not have permission to perform this action!');
   } else if (email === '' || password === '') {
@@ -146,7 +149,7 @@ app.post('/login', (req, res) => {
     currentUser.user_id = users[user].user_id;
     currentUser.email = users[user].email;
     currentUser.password = users[user].password;
-
+// checks if the password matches the one stored in the database
     if (bcrypt.compareSync(password, currentUser.password)) {
       console.log("CURRENT USER", currentUser);
       req.session.user_id = currentUser.user_id;
@@ -166,6 +169,7 @@ app.post('/logout', (req, res) => {
 app.post("/urls/:shortURL/delete", (req, res) => {
   const shortURL = req.params.shortURL;
   let usersURLsArray = Object.keys(urlsForUser(currentUser.user_id, urlDatabase));
+  // checks if the shortURL belongs to the user trying to delete it
   if (usersURLsArray.includes(shortURL)) {
     console.log("DELETE SHORTURL:", urlDatabase[shortURL]);
     delete urlDatabase[shortURL];
@@ -180,6 +184,7 @@ app.post('/urls/:shortURL', (req, res) => {
   const shortURL = req.params.shortURL;
   let usersURLsArray = Object.keys(urlsForUser(currentUser.user_id, urlDatabase));
   console.log("users's URLS:", usersURLsArray);
+  // checks if the shortURL belongs to the user trying to edit it
   if (usersURLsArray.includes(shortURL)) {
     urlDatabase[shortURL].longURL = newLongURL;
     res.redirect('/urls');
