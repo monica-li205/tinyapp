@@ -32,7 +32,7 @@ app.get("/error", (req, res) => {
     user_id: req.session.user_id,
   };
   res.render("urls_error", templateVars);
-})
+});
 
 app.get("/new", (req, res) => {
   const templateVars = {
@@ -115,7 +115,7 @@ app.post('/register', (req, res) => {
   users[id]['email'] = req.body.email_register;
   users[id]['password'] = bcrypt.hashSync(req.body.password_register, 10);
   console.log("USERS:", users);
-// checks if the user left any fields blank or if their email is already in the database
+  // checks if the user left any fields blank or if their email is already in the database
   if (req.body.email === '' || !req.body.password === '' || getUserByEmail(req.body.email, users)) {
     return res.status(400).send('please enter a valid email and password');
   } else {
@@ -139,7 +139,7 @@ app.post("/urls", (req, res) => {
 app.post('/login', (req, res) => {
   let email = req.body.email_login;
   let password = req.body.password_login;
-// checks if email exists in database and if valid, stores their info in the currentUser object
+  // checks if email exists in database and if valid, stores their info in the currentUser object
   if (!getUserByEmail(email, users)) {
     res.status(403).send('you do not have permission to perform this action!');
   } else if (email === '' || password === '') {
@@ -149,7 +149,7 @@ app.post('/login', (req, res) => {
     currentUser.user_id = users[user].user_id;
     currentUser.email = users[user].email;
     currentUser.password = users[user].password;
-// checks if the password matches the one stored in the database
+    // checks if the password matches the one stored in the database
     if (bcrypt.compareSync(password, currentUser.password)) {
       console.log("CURRENT USER", currentUser);
       req.session.user_id = currentUser.user_id;
