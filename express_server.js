@@ -18,12 +18,21 @@ app.use(cookieSession({
 let currentUser = {};
 
 app.get("/", (req, res) => {
+  //redirects user to home page (if logged in) or to login page (if not logged in) when the head parameter in '/'
   if (currentUser.user_id) {
     res.redirect("/urls");
   } else if (!currentUser.id) {
     res.redirect("/login");
   }
 });
+
+app.get("/error", (req, res) => {
+  const templateVars = {
+    currentUser: currentUser,
+    user_id: req.session.user_id,
+  };
+  res.render("urls_error", templateVars);
+})
 
 app.get("/new", (req, res) => {
   const templateVars = {
@@ -75,7 +84,11 @@ app.get('/urls/:shortURL', (req, res) => {
     currentUser: currentUser,
     user_id: req.session.user_id,
   };
-  res.render('urls_show', templateVars);
+  if (templateVars.user_id === urlDatabase[shortURL].userID) {
+    res.render('urls_show', templateVars);
+  } else {
+    res.redirect('/error');
+  }
 });
 
 app.get('/u/:shortURL', (req, res) => {
@@ -97,10 +110,9 @@ app.post('/register', (req, res) => {
   users[id]['user_id'] = id;
   users[id]['email'] = req.body.email_register;
   users[id]['password'] = bcrypt.hashSync(req.body.password_register, 10);
-  console.log(users);
+  console.log("USERS:", users);
 
   if (req.body.email === '' || !req.body.password === '' || getUserByEmail(req.body.email, users)) {
-    console.log('8((');
     return res.status(400).send('please enter a valid email and password');
 
   } else {
@@ -117,7 +129,7 @@ app.post("/urls", (req, res) => {
   urlDatabase[shortURL] = {};
   urlDatabase[shortURL].longURL = req.body.longURL;
   urlDatabase[shortURL].userID = currentUser.user_id;
-  console.log(urlDatabase);
+  console.log("URL DATABASE:", urlDatabase);
   res.redirect(`/urls/${shortURL}`);
 });
 
@@ -126,10 +138,8 @@ app.post('/login', (req, res) => {
   let password = req.body.password_login;
 
   if (!getUserByEmail(email, users)) {
-    console.log('80');
     res.status(403).send('you do not have permission to perform this action!');
   } else if (email === '' || password === '') {
-    console.log('8((');
     res.status(400).send('Please enter a valid email and password');
   } else if (getUserByEmail(email, users)) {
     let user = getUserByEmail(email, users);
@@ -138,7 +148,7 @@ app.post('/login', (req, res) => {
     currentUser.password = users[user].password;
 
     if (bcrypt.compareSync(password, currentUser.password)) {
-      console.log(currentUser);
+      console.log("CURRENT USER", currentUser);
       req.session.user_id = currentUser.user_id;
       res.redirect('/urls');
     } else {
@@ -157,7 +167,7 @@ app.post("/urls/:shortURL/delete", (req, res) => {
   const shortURL = req.params.shortURL;
   let usersURLsArray = Object.keys(urlsForUser(currentUser.user_id, urlDatabase));
   if (usersURLsArray.includes(shortURL)) {
-    console.log(urlDatabase[shortURL]);
+    console.log("DELETE SHORTURL:", urlDatabase[shortURL]);
     delete urlDatabase[shortURL];
     res.redirect('/urls');
   } else {
@@ -169,8 +179,9 @@ app.post('/urls/:shortURL', (req, res) => {
   const newLongURL = req.body.longURL;
   const shortURL = req.params.shortURL;
   let usersURLsArray = Object.keys(urlsForUser(currentUser.user_id, urlDatabase));
+  console.log("users's URLS:", usersURLsArray);
   if (usersURLsArray.includes(shortURL)) {
-    urlDatabase[shortURL] = newLongURL;
+    urlDatabase[shortURL].longURL = newLongURL;
     res.redirect('/urls');
   } else {
     return res.status(403).send('you do not have permission to perform this action!');
