@@ -1,4 +1,5 @@
 const {generateRandomString, getUserByEmail, urlsForUser} = require('./helpers');
+const { urlDatabase, users } = require('./sample_databases');
 const express = require("express");
 const cookieSession = require('cookie-session');
 const bodyParser = require("body-parser");
@@ -16,24 +17,6 @@ app.use(cookieSession({
 // temporary storage containing the current user's id, email and password. Is wiped after logout
 let currentUser = {};
 
-const urlDatabase = {
-  b6UTxQ: { longURL: "https://www.tsn.ca", userID: "userRandomuser_id" },
-  i3BoGr: { longURL: "https://www.google.ca", userID: "user2" },
-};
-
-const users = {
-  "userRandomuser_id": {
-    user_id: "userRandomuser_id",
-    email: "user@example.com",
-    password: bcrypt.hashSync("purple", 10),
-  },
-  "user2" : {
-    user_id: 'user2',
-    email: 'user2@mail.com',
-    password: bcrypt.hashSync('1234',10),
-  }
-};
-
 app.get("/", (req, res) => {
   if (currentUser.user_id) {
     res.redirect("/urls");
@@ -44,7 +27,6 @@ app.get("/", (req, res) => {
 
 app.get("/new", (req, res) => {
   const templateVars = {
-    users: users,
     currentUser: currentUser,
     user_id: req.session.user_id,
   };
@@ -54,7 +36,6 @@ app.get("/new", (req, res) => {
 app.get("/urls", (req, res) => {
   let urls = urlsForUser(currentUser.user_id, urlDatabase);
   const templateVars = {
-    users:users,
     currentUser: currentUser,
     urls: urls,
     user_id: req.session.user_id,
@@ -64,7 +45,6 @@ app.get("/urls", (req, res) => {
 
 app.get('/register', (req, res) => {
   const templateVars = {
-    users: users,
     currentUser: currentUser,
     user_id: req.session.user_id,
   };
@@ -77,7 +57,6 @@ app.get('/register', (req, res) => {
 
 app.get('/login', (req, res) => {
   const templateVars = {
-    users: users,
     currentUser: currentUser,
     user_id: req.session.user_id,
   };
@@ -93,7 +72,6 @@ app.get('/urls/:shortURL', (req, res) => {
   const templateVars = {
     urls: urlDatabase,
     key: shortURL,
-    users: users,
     currentUser: currentUser,
     user_id: req.session.user_id,
   };
