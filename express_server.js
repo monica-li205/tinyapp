@@ -31,10 +31,12 @@ app.get("/error", (req, res) => {
     currentUser: currentUser,
     user_id: req.session.user_id,
   };
+  res.status(403);
+  // .send('you do not have permission to perform this action!');
   res.render("urls_error", templateVars);
 });
 
-app.get("/new", (req, res) => {
+app.get("/urls/new", (req, res) => {
   const templateVars = {
     currentUser: currentUser,
     user_id: req.session.user_id,
@@ -96,16 +98,25 @@ app.get('/urls/:shortURL', (req, res) => {
 
 app.get('/u/:shortURL', (req, res) => {
   const shortURL = req.params.shortURL;
-  const longURL = urlDatabase[shortURL].longURL;
-  const regexp =  /^(?:(?:https?|ftp):\/\/)?(?:(?!(?:10|127)(?:\.\d{1,3}){3})(?!(?:169\.254|192\.168)(?:\.\d{1,3}){2})(?!172\.(?:1[6-9]|2\d|3[0-1])(?:\.\d{1,3}){2})(?:[1-9]\d?|1\d\d|2[01]\d|22[0-3])(?:\.(?:1?\d{1,2}|2[0-4]\d|25[0-5])){2}(?:\.(?:[1-9]\d?|1\d\d|2[0-4]\d|25[0-4]))|(?:(?:[a-z\u00a1-\uffff0-9]-*)*[a-z\u00a1-\uffff0-9]+)(?:\.(?:[a-z\u00a1-\uffff0-9]-*)*[a-z\u00a1-\uffff0-9]+)*(?:\.(?:[a-z\u00a1-\uffff]{2,})))(?::\d{2,5})?(?:\/\S*)?$/;
-  //checks if a URL is a valid URL, then checks if the user added https:// to beginning of the URL. If the user did not, it will add the https:// to ensure the link will redirect when clicked on
-  if (!regexp.test(longURL)) {
-    return res.status(400).send('your URL is not valid');
-  } else if (longURL[0] !== 'h') {
-    res.redirect(`https://${longURL}`);
-  } else {
-    res.redirect(longURL);
+  //checks that the shortURL exists in the database
+  for (let url of Object.keys(urlDatabase)) {
+    if (shortURL === url) {
+      const longURL = urlDatabase[shortURL].longURL;
+      const regexp =  /^(?:(?:https?|ftp):\/\/)?(?:(?!(?:10|127)(?:\.\d{1,3}){3})(?!(?:169\.254|192\.168)(?:\.\d{1,3}){2})(?!172\.(?:1[6-9]|2\d|3[0-1])(?:\.\d{1,3}){2})(?:[1-9]\d?|1\d\d|2[01]\d|22[0-3])(?:\.(?:1?\d{1,2}|2[0-4]\d|25[0-5])){2}(?:\.(?:[1-9]\d?|1\d\d|2[0-4]\d|25[0-4]))|(?:(?:[a-z\u00a1-\uffff0-9]-*)*[a-z\u00a1-\uffff0-9]+)(?:\.(?:[a-z\u00a1-\uffff0-9]-*)*[a-z\u00a1-\uffff0-9]+)*(?:\.(?:[a-z\u00a1-\uffff]{2,})))(?::\d{2,5})?(?:\/\S*)?$/;
+      // checks if a URL is a valid URL, then checks if the user added https:// to beginning of the URL. If the user did not, it will add the https:// to ensure the link will redirect when clicked on
+      if (!urlDatabase[shortURL]) {
+        return res.status(400).send('your URL is not valid');
+      } else
+      if (!regexp.test(longURL)) {
+        return res.status(400).send('your shortURL does not exist');
+      } else if (longURL[0] !== 'h') {
+        res.redirect(`https://${longURL}`);
+      } else {
+        res.redirect(longURL);
+      }
+    }
   }
+  return res.status(400).send('your shortURL does not exist');
 });
 
 app.post('/register', (req, res) => {
