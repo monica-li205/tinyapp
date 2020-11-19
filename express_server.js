@@ -88,12 +88,17 @@ app.get('/urls/:shortURL', (req, res) => {
     currentUser: currentUser,
     user_id: req.session.user_id,
   };
-  //checks if the user trying to access the shortURL page is the same as the user who created the shortURL
-  if (templateVars.user_id === urlDatabase[shortURL].userID) {
-    res.render('urls_show', templateVars);
-  } else {
-    res.redirect('/error');
+  for (let url of Object.keys(urlDatabase)) {
+    if (shortURL === url) {
+      //checks if the user trying to access the shortURL page is the same as the user who created the shortURL
+      if (templateVars.user_id === urlDatabase[shortURL].userID) {
+        res.render('urls_show', templateVars);
+      } else {
+        res.redirect('/error');
+      }
+    }
   }
+  return res.redirect('/error');
 });
 
 app.get('/u/:shortURL', (req, res) => {
